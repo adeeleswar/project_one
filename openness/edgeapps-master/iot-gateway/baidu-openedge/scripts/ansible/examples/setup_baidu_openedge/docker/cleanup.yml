@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2019 Intel Corporation
+
+
+- name: Check Docker service
+  shell: systemctl status docker
+  ignore_errors: true
+  args:
+    warn: false
+  register: docker_service_status
+
+- name: Check BaiduEdge DockerCompose
+  shell: docker-compose ps -a 
+  args:
+    chdir: "{{ my_composefile_path }}"
+  register: docker_containers_running
+  when: docker_service_status.rc == 0
+
+- name: Remove Docker containers
+  shell: "docker-compose stop && docker-compose rm -f -s"
+  args:
+    chdir: "{{ my_composefile_path }}"
+  ignore_errors: true
+  when: 
+    - docker_service_status.rc == 0
+    - docker_containers_running.stdout != ""
+
+- name: Check Docker images
+  shell: "docker images | grep baidu"
+  args:
+    chdir: "{{ my_composefile_path }}"
+  register: docker_images_present
+  ignore_errors: true
+  when: docker_service_status.rc == 0
+    
+- name: Remove Docker images  
+  shell: docker rmi -f composefile_baidu_edge
+  args:
+    chdir: "{{ my_composefile_path }}"
+  when: 
+    - docker_service_status.rc == 0
+    - docker_images_present.stdout != ''

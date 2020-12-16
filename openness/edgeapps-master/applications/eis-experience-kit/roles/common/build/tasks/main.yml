@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2020 Intel Corporation
+
+---
+
+
+- name: Build EIS common docker images
+  shell: "docker-compose build {{ eis_base_images_names }}"
+  args:
+    chdir: "{{ eis_sources_dir }}/build"
+  changed_when: true

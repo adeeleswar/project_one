@@ -1,0 +1,37 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2020 Intel Corporation
+
+---
+
+- block:
+  - name: find cni dir
+    find:
+      paths: .
+      patterns: "cni"
+      recurse: yes
+      file_type: directory
+    delegate_to: localhost
+    register: cni_dir_matches
+  - name: set cni_dir variable (path to roles/kubernetes/cni dir)
+    set_fact:
+      cni_dir: "{{ cni_dir_matches.files[0].path }}"
+
+- name: create list of available CNIs roles
+  # it creates an array with CNI roles, e.g.: [ 'kubeovn/controlplane', 'kubeovn/node', 'calico' ]
+  # it is used later to call only roles that exists (skip node role if it doesn't exist)
+  set_fact:
+    available_cni_roles: "{{ available_cni_roles|default([]) + [item.path] }}"
+  with_filetree: "{{ cni_dir }}"
+  when:
+  - item.state == 'directory'
+  - (item.path.endswith('controlplane')) or (item.path.endswith('node'))
+  tags:
+  - skip_ansible_lint
+
+- name: set role postfix
+  set_fact:
+    role_postfix: controlplane
+- name: change role postfix for worker
+  set_fact:
+    role_postfix: node
+  when: inventory_hostname not in groups['controller_group']

@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2020 Intel Corporation
+
+---
+- name: uninstall gpu plugin
+  command: helm uninstall {{ _gpu_plugin.helmReleaseName }}
+  changed_when: true
+  ignore_errors: yes
+
+- name: delete gpu-plugin kustomization
+  command: helm uninstall {{ _vpu_plugin.helmReleaseName }}
+  changed_when: true
+  ignore_errors: yes
+
+- name: remove the downloaded intel-device-plugins and relevent helm charts
+  file:
+    name: "{{ item }}"
+    state: absent
+  with_items:
+  - "{{ _device_plugins.download_dir }}"
+  - "{{ ne_helm_charts_default_dir }}/gpu-plugin"
+  - "{{ ne_helm_charts_default_dir }}/vpu-plugin"

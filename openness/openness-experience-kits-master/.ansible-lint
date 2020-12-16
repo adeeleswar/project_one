@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2020 Intel Corporation
+
+---
+skip_list:
+  - '701'
+
+exclude_paths:
+  - roles/telemetry/certs/files/
+  - roles/telemetry/collectd/controlplane/files/
+  - roles/telemetry/collectd/node/files/
+  - roles/telemetry/prometheus/files/
+  - roles/telemetry/pcm/controlplane/charts/
+  - roles/telemetry/tas/files/
+  - roles/nfd/files/
+  - roles/kubernetes/cni/sriov/controlplane/files
+  - roles/telemetry/opentelemetry/controlplane/charts
+  - roles/fpga_cfg/charts
+  - cnab

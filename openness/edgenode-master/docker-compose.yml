@@ -1,0 +1,62 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2019-2020 Intel Corporation
+
+# TODO: Expose ports only to a local network address
+version: '3.2'
+services:
+  eaa:
+    build:
+      context: ./dist/eaa
+      args:
+        username: eaa
+    image: "eaa:${VER}"
+    read_only: true
+    security_opt:
+     - no-new-privileges:false
+    ports:
+     - "192.168.122.1:443:443"
+     - "192.168.122.1:80:80"
+    volumes:
+     - "/var/lib/appliance/certs:/home/eaa/certs"
+     - "/var/lib/appliance/configs:/home/eaa/configs"
+    network_mode: bridge
+
+  edgednssvr:
+    ports:
+     - "192.168.122.128:53:53/udp"
+    container_name: mec-app-edgednssvr
+    build:
+      context: ./dist/edgednssvr
+      args:
+        username: edgednssvr
+    image: "edgednssvr:${VER}"
+    read_only: true
+    security_opt:
+     - no-new-privileges:false
+    cap_add:
+     - NET_ADMIN
+    volumes:
+     - "/var/lib/appliance/edgednssvr:/var/lib/edgedns"
+    command:
+     - "-port=53"
+     - "-fwdr=8.8.8.8"
+    environment:
+     - http_proxy
+     - https_proxy
+    network_mode: bridge
+
+  interfaceservice:
+    container_name: interfaceservice
+    build:
+      context: ./dist/interfaceservice
+      args:
+        username: interfaceservice
+    image: "interfaceservice:${VER}"
+    security_opt:
+     - no-new-privileges:false
+    privileged: true
+    volumes:
+     - "/var/lib/appliance/configs:/home/interfaceservice/configs"
+     - "/var/lib/appliance/certs:/home/interfaceservice/certs"
+     - "/var/run:/var/run"
+    network_mode: host

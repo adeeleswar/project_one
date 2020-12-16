@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2019 Intel Corporation
+
+- name: Docker-compose Bring up BaiduEdgeImage
+  shell: docker-compose up -d --no-build baidu_edge 
+  args:
+    chdir: "{{ my_composefile_path }}"

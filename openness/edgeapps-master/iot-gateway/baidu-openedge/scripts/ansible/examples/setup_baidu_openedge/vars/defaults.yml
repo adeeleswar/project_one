@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2019 Intel Corporation
+
+my_root_path: "{{ './.' | realpath }}"
+my_composefile_path: "{{ './composefile/.' | realpath }}"
+

@@ -1,0 +1,90 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2020 Intel Corporation
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: analytics-policy
+  namespace: default
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: {{ $.Values.servingPort }}
+---
+{{- range $platform := $.Values.platforms }}
+{{- range $framework := $.Values.frameworks }}
+apiVersion: v1
+kind: Service
+metadata:
+  {{- if eq $platform "xeon" }}
+  name: analytics-{{ $framework }}
+  {{- else }}
+  name: analytics-{{ $framework }}-{{ $platform }}
+  {{- end }}
+  namespace: default
+spec:
+  clusterIP: None
+  selector:
+    {{- if eq $platform "xeon" }}
+    app: va-serving-{{ $framework }}
+    {{- else }}
+    app: va-serving-{{ $framework }}-{{ $platform }}
+    {{- end }}
+  ports:
+    - protocol: TCP
+      port: {{ $.Values.servingPort }}
+      targetPort: {{ $.Values.servingPort }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  {{- if eq $platform "xeon" }}
+  name: analytics-{{ $framework }}
+  {{- else }}
+  name: analytics-{{ $framework }}-{{ $platform }}
+  {{- end }}
+  namespace: default
+spec:
+  replicas: {{ $.Values.replicas }}
+  selector:
+    matchLabels:
+      {{- if eq $platform "xeon" }}
+      app: va-serving-{{ $framework }}
+      {{- else }}
+      app: va-serving-{{ $framework }}-{{ $platform }}
+      {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- if eq $platform "xeon" }}
+        app: va-serving-{{ $framework }}
+        {{- else }}
+        app: va-serving-{{ $framework }}-{{ $platform }}
+        {{- end }}
+    spec:
+      containers:
+      - name: vas-gateway
+        image: {{ $.Values.registry }}/{{ $.Values.servingImage }}-{{ $framework }}:{{ $.Values.servingTag }}
+        imagePullPolicy: IfNotPresent
+      - name: vas-sidecar
+        image: {{ $.Values.registry }}/{{ $.Values.sidecarImage }}:{{ $.Values.sidecarTag }}
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: NAMESPACE
+            value: default
+          - name: VAS_PORT
+            value: "{{ $.Values.servingPort }}"
+          - name: PLATFORM
+            value: {{ $platform }}
+          - name: FRAMEWORK
+            value: {{ $framework }}
+---
+{{- end }}
+{{- end }}
