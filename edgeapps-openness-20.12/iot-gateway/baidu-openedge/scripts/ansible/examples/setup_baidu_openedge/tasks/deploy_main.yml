@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2019 Intel Corporation
+
+---
+- hosts: localhost
+  any_errors_fatal: false
+  tasks:
+  - debug:
+      msg: "--- UP Baidu OpenEdge ()---"
+  - include_vars: ../vars/defaults.yml
+  - debug:
+      msg: "Base path set to: {{ my_root_path }}"
+  
+  # Docker
+  - include_tasks: ../docker/compose_up.yml
+
+  # Finish
+  - include_tasks: ./script_success.yml

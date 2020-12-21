@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2019 Intel Corporation
+
+version: '3'
+services:
+  baidu_edge:
+    build: .
+    tty: true
+    ports:
+      - "1883:1883"
+      - "1884:1884"
+      - "443:443"
